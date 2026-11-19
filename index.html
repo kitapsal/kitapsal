@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitapsal | Nostaljik Hikâye Kütüphanesi</title>
+    <!-- Klasik Daktilo ve Eski Roman Fontları -->
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    <!-- Gerçekçi Sayfa Çevirme Kütüphanesi (StPageFlip) -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #140f0b;
+            --wood-accent: #2c1e16;
+            --paper-color: #f4ebd9;
+            --paper-shadow: #d8c8a8;
+            --ink-color: #2b2118;
+            --gold-accent: #c59b27;
+            --blood-red: #7a1c1c;
+            --love-rose: #8c2d3c;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 40%, rgba(62, 42, 28, 0.45) 0%, rgba(15, 10, 7, 0.95) 85%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 4px);
+            color: var(--paper-color);
+            font-family: 'Courier Prime', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            overflow-x: hidden;
+            padding: 15px;
+        }
+
+        /* Mum Işığı Titreme Efekti */
+        .candle-glow {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 80vw;
+            height: 80vh;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 179, 71, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+            animation: flicker 4s infinite alternate;
+            z-index: 0;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.03); }
+        }
+
+        /* Üst Başlık ve Kategori Ayraçları */
+        header {
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .brand-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            letter-spacing: 4px;
+            color: var(--gold-accent);
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+        }
+
+        .brand-subtitle {
+            font-size: 0.85rem;
+            color: #a89882;
+            letter-spacing: 1.5px;
+            margin-bottom: 18px;
+        }
+
+        .category-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            background: #231710;
+            color: #d6c7b2;
+            border: 1px solid #4a3525;
+            padding: 10px 22px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .tab-btn:hover {
+            border-color: var(--gold-accent);
+            color: #fff;
+        }
+
+        .tab-btn.active-detective {
+            background: var(--blood-red);
+            border-color: #b83232;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(122, 28, 28, 0.6);
+        }
+
+        .tab-btn.active-love {
+            background: var(--love-rose);
+            border-color: #c94a5e;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(140, 45, 60, 0.6);
+        }
+
+        /* Kitap Alanı */
+        .book-stage {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 960px;
+            margin: 10px auto;
+        }
+
+        .flip-book {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+        }
+
+        /* Sayfa Tasarımı */
+        .page {
+            background-color: var(--paper-color);
+            background-image: 
+                radial-gradient(circle at center, transparent 60%, rgba(168, 142, 102, 0.25) 100%),
+                linear-gradient(to right, rgba(0,0,0,0.08) 0%, transparent 5%, transparent 95%, rgba(0,0,0,0.08) 100%);
+            color: var(--ink-color);
+            padding: 35px 30px;
+            border: 1px solid #c9b79c;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Kapak Sayfası */
+        .page-cover {
+            background: linear-gradient(135deg, #24140e 0%, #140a06 100%);
+            color: var(--gold-accent);
+            border: 3px solid #4d331f;
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.9);
+        }
+
+        .page-cover.love-cover {
+            background: linear-gradient(135deg, #2e1118 0%, #17070b 100%);
+            border-color: #632634;
+        }
+
+        .cover-frame {
+            border: 2px solid var(--gold-accent);
+            padding: 30px 20px;
+            width: 90%;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cover-genre {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .cover-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            line-height: 1.3;
+            margin-bottom: 20px;
+        }
+
+        .cover-hint {
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: #bfa988;
+            font-style: italic;
+        }
+
+        /* İç Sayfa Metin Düzeni */
+        .page-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #7a6855;
+            border-bottom: 1px solid #d1c0a5;
+            padding-bottom: 6px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .story-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.45rem;
+            color: #1c130d;
+            margin-bottom: 14px;
+            border-left: 3px solid var(--blood-red);
+            padding-left: 10px;
+        }
+
+        .love-theme .story-title {
+            border-left-color: var(--love-rose);
+        }
+
+        .story-text {
+            font-size: 0.92rem;
+            line-height: 1.72;
+            text-align: justify;
+            flex-grow: 1;
+        }
+
+        .story-text p {
+            margin-bottom: 12px;
+            text-indent: 18px;
+        }
+
+        .drop-cap::first-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.6rem;
+            float: left;
+            line-height: 0.85;
+            margin-right: 8px;
+            color: var(--blood-red);
+            font-weight: bold;
+        }
+
+        .love-theme .drop-cap::first-letter {
+            color: var(--love-rose);
+        }
+
+        .page-footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #7a6855;
+            border-top: 1px solid #d1c0a5;
+            padding-top: 6px;
+            margin-top: 10px;
+        }
+
+        /* Alt Kontrol Paneli (1980'ler Caz Pikap & Kontroller) */
+        .control-bar {
+            z-index: 10;
+            width: 100%;
+            max-width: 900px;
+            background: rgba(28, 19, 13, 0.9);
+            border: 1px solid #4a3525;
+            border-radius: 50px;
+            padding: 10px 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .vinyl-player {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .vinyl-disc {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--gold-accent) 18%, #111 22%, #222 45%, #111 48%, #222 70%, #000 100%);
+            border: 2px solid #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        .vinyl-disc.spinning {
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .audio-btn {
+            background: none;
+            border: 1px solid var(--gold-accent);
+            color: var(--gold-accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .audio-btn:hover, .audio-btn.playing {
+            background: var(--gold-accent);
+            color: #140f0b;
+            font-weight: bold;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            background: #2b1d14;
+            color: #e6d7c3;
+            border: 1px solid #523b2b;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.85rem;
+        }
+
+        .nav-btn:hover {
+            background: #422c1e;
+        }
+
+        .instructions {
+            font-size: 0.78rem;
+            color: #9e8c76;
+        }
+
+        @media (max-width: 768px) {
+            .brand-title { font-size: 1.8rem; }
+            .page { padding: 20px 18px; }
+            .story-text { font-size: 0.84rem; line-height: 1.55; }
+            .control-bar { border-radius: 15px; justify-content: center; text-align: center; }
+            .instructions { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="candle-glow"></div>
+
+    <header>
+        <h1 class="brand-title">KİTAPSAL</h1>
+        <p class="brand-subtitle">1980'LER CAZ EŞLİĞİNDE GECE YARISI HİKÂYELERİ</p>
+        
+        <div class="category-tabs">
+            <button id="btn-detective" class="tab-btn active-detective" onclick="loadBook('detective')">
+                🔍 Polisiye & Cinayet
+            </button>
+            <button id="btn-love" class="tab-btn" onclick="loadBook('love')">
+                🥀 Aşk & Dram
+            </button>
+        </div>
+    </header>
+
+    <main class="book-stage">
+        <div id="book-container"></div>
+    </main>
+
+    <footer class="control-bar">
+        <div class="vinyl-player">
+            <div id="vinyl" class="vinyl-disc"></div>
+            <div>
+                <div style="font-size: 0.8rem; color: #e6d7c3;">1984 Midnight Noir Jazz</div>
+                <div id="music-status" style="font-size: 0.7rem; color: #8c7a65;">Pikap Duraklatıldı</div>
+            </div>
+            <button id="music-toggle" class="audio-btn" onclick="toggleJazz()">▶ Plağı Başlat</button>
+        </div>
+
+        <div class="instructions">
+            💡 Sayfa köşesinden tutup kaydırın veya okları kullanın
+        </div>
+
+        <div class="nav-controls">
+            <button class="nav-btn" onclick="pageFlip.flipPrev()">◀ Önceki</button>
+            <button class="nav-btn" onclick="pageFlip.flipNext()">Sonraki ▶</button>
+        </div>
+    </footer>
+
+    <!-- Ses Dosyaları (Kendi jazz.mp3 ve sayfa.mp3 dosyalarını GitHub'a yüklediğinde otomatik onları çalar) -->
+    <audio id="jazz-audio" loop>
+        <source src="jazz.mp3" type="audio/mpeg">
+        <!-- Yedek Çevrimiçi Nostaljik Caz Yayını / Dosyası -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="flip-audio">
+        <source src="sayfa.mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7368e4d416.mp3?filename=page-flip-47177.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let pageFlip = null;
+        const jazzAudio = document.getElementById('jazz-audio');
+        const flipAudio = document.getElementById('flip-audio');
+        const vinyl = document.getElementById('vinyl');
+        const musicBtn = document.getElementById('music-toggle');
+        const musicStatus = document.getElementById('music-status');
+        let isPlaying = false;
+
+        // Hikâye Veritabanı (Yeni hikâyeleri buraya kolayca ekleyebilirsin)
+        const booksData = {
+            detective: {
+                themeClass: '',
+                coverClass: 'page-cover',
+                genre: 'DOSYA NO: 1987 - POLİSİYE & CİNAYET',
+                title: 'SİS VE BARUT KOKUSU',
+                pages: [
+                    {
+                        header: 'Bölüm I • Gece 02:15',
+                        title: 'Rıhtımdaki Son Vapur',
+                        content: `<p class="drop-cap">Yağmur, Karaköy rıhtımındaki parke taşlarını siyah bir aynaya çevirmişti. Komiser Kenan, trençkotunun yakasını kaldırıp cesedin başındaki tek ipucuna baktı: Kırık bir köstekli saat, tam 01:40'ta durmuştu.</p>
+                        <p>Maktul, şehrin en tanınmış antikacısıydı. Cebinden çıkan tek şey ise üzerinde daktiloyla yazılmış yarım bir nottu: "Perde kapandığında geriye sadece gölgeler kalır."</p>`
+                    },
+                    {
+                        header: 'Bölüm I • İpuçları',
+                        title: 'Kayıp Anahtar',
+                        content: `<p>Kenan sigarasından derin bir nefes çekti. Duman, sokak lambasının sarı ışığında dağılırken olay yeri inceleme ekibinden genç memur yanına yaklaştı.</p>
+                        <p>"Komiserim, adamın avucunda sıkıca tuttuğu pirinç bir anahtar bulduk. Üzerinde 404 numarası kazılı. Hemen karşıdaki eski Pera Oteli'nin oda anahtarına benziyor."</p>
+                        <p>Otelin karanlık pencerelerine bakan Kenan, bu cinayetin sıradan bir gasp olmadığını anlamıştı.</p>`
+                    },
+                    {
+                        header: 'Bölüm II • Sorgu',
+                        title: '404 Numaralı Oda',
+                        content: `<p class="drop-cap">Pera Oteli'nin gıcırdayan merdivenlerinden çıkarken koridorda ağır bir parfüm ve tütün kokusu hakimdi. 404 numaralı odanın kapısı aralıktı.</p>
+                        <p>İçeride masanın üzerinde duran gramofon hâlâ dönüyor, iğne plağın sonundaki boşlukta cızırtılı bir ritim tutturuyordu. Masadaki kül tablasında ruj izli bir sigara izmariti vardı. Katil henüz binadan çıkmamıştı...</p>`
+                    },
+                    {
+                        header: 'Bölüm II • Yüzleşme',
+                        title: 'Gölgedeki İtiraf',
+                        content: `<p>Perdenin arkasındaki siluet kıpırdadığında Kenan elini belindeki tabancaya götürdü. Gölgeden çıkan kadın, elindeki eski mektupları masaya bıraktı.</p>
+                        <p>"O saat yirmi yıl önce durdu Komiser," dedi titrek ama soğukkanlı bir sesle. "Antikacı sadece geçmişin bedelini ödedi. Şimdi sıra gerçekleri duymakta..."</p>`
+                    }
+                ]
+            },
+            love: {
+                themeClass: 'love-theme',
+                coverClass: 'page-cover love-cover',
+                genre: 'KOLEKSİYON • AŞK & NOSTALJİ',
+                title: 'SONBAHAR MEKTUPLARI',
+                pages: [
+                    {
+                        header: 'Mektup I • Ekim 1985',
+                        title: 'İstasyon Bankı',
+                        content: `<p class="drop-cap">Haydarpaşa Garı'nın yüksek tavanlarında yankılanan tren düdükleri, vedaların en gürültülü şahidiydi. Elinde tuttuğu bordo kapaklı defterin arasına kurutulmuş bir akasya yaprağı koymuştu.</p>
+                        <p>"Eğer bu tren kalkmadan gelirsen," demişti fısıltıyla, "hiçbir şehre gitmeyeceğim. Ama gelmezsen, her istasyonda seni bekleyeceğim."</p>`
+                    },
+                    {
+                        header: 'Mektup I • Bekleyiş',
+                        title: 'Yağmur ve Keman',
+                        content: `<p>Peron yavaş yavaş boşalırken istasyonun köşesindeki yaşlı kemancı hüzünlü bir vals çalmaya başladı. Saat dokuzu beş geçiyordu.</p>
+                        <p>Tam umudunu yitirip vagonun basamağına adım atmıştı ki, kalabalığın arasından nefes nefese koşan o tanıdık silueti gördü. İkisinin de omuzları sırılsıklamdı ama gözlerindeki sıcaklık tüm kışı eritmeye yetiyordu.</p>`
+                    },
+                    {
+                        header: 'Mektup II • Yıllar Sonra',
+                        title: 'Aynı Kafe, Aynı Masa',
+                        content: `<p class="drop-cap">Aradan geçen on yılın ardından Beyoğlu'ndaki o küçük caz kafede yine aynı pencere kenarında oturuyorlardı. Masada iki fincan kahve ve sararmış eski bir fotoğraf vardı.</p>
+                        <p>"Zaman her şeyi değiştirir sanırdım," dedi adam, kadının elini tutarken. "Meğer bazı bakışlar ilk günkü gibi kalırmış."</p>`
+                    },
+                    {
+                        header: 'Mektup II • Sonsöz',
+                        title: 'Hiç Bitmeyen Şarkı',
+                        content: `<p>Plaktan yükselen saksafon sesi masanın üzerindeki mum ışığını titretirken, ikisi de tek kelime etmeden sokağa düşen ilk kar tanelerini izledi.</p>
+                        <p>Bazı hikâyeler bitmek için değil, her satırında yeniden yaşanmak için yazılırdı.</p>`
+                    }
+                ]
+            }
+        };
+
+        function loadBook(category) {
+            // Buton aktiflik durumlarını güncelle
+            document.getElementById('btn-detective').className = category === 'detective' ? 'tab-btn active-detective' : 'tab-btn';
+            document.getElementById('btn-love').className = category === 'love' ? 'tab-btn active-love' : 'tab-btn';
+
+            const data = booksData[category];
+            const container = document.getElementById('book-container');
+
+            // Önceki kitap örneğini temizle
+            if (pageFlip) {
+                pageFlip.destroy();
+                pageFlip = null;
+            }
+
+            // Yeni HTML sayfalarını oluştur
+            let html = `<div id="kitap" class="flip-book ${data.themeClass}">`;
+            
+            // Ön Kapak
+            html += `
+                <div class="page ${data.coverClass}" data-density="hard">
+                    <div class="cover-frame">
+                        <div class="cover-genre">${data.genre}</div>
+                        <h2 class="cover-title">${data.title}</h2>
+                        <div style="width: 50px; height: 2px; background: var(--gold-accent); margin: 10px 0;"></div>
+                        <div class="cover-hint">Okumak için sayfayı sola kaydırın ➔</div>
+                    </div>
+                </div>
+            `;
+
+            // İç Sayfalar
+            data.pages.forEach((p, index) => {
+                html += `
+                    <div class="page">
+                        <div>
+                            <div class="page-header">
+                                <span>KİTAPSAL</span>
+                                <span>${p.header}</span>
+                            </div>
+                            <h3 class="story-title">${p.title}</h3>
+                            <div class="story-text">${p.content}</div>
+                        </div>
+                        <div class="page-footer">- ${index + 1} -</div>
+                    </div>
+                `;
+            });
+
+            // Arka Kapak
+            html += `
+                <div class="page ${data.coverClass}" data-density="hard">
+                    <div class="cover-frame">
+                        <div class="cover-genre">KİTAPSAL ARŞİVİ</div>
+                        <h2 class="cover-title" style="font-size: 1.5rem;">SON</h2>
+                        <p style="font-size: 0.85rem; color: #d6c7b2; margin-top: 10px;">Yeni hikâyeler çok yakında...</p>
+                    </div>
+                </div>
+            </div>`;
+
+            container.innerHTML = html;
+
+            // Ekran boyutuna göre kitap ölçüsü ayarla
+            const isMobile = window.innerWidth < 768;
+            const pageWidth = isMobile ? Math.min(window.innerWidth - 40, 360) : 420;
+            const pageHeight = isMobile ? 480 : 540;
+
+            // StPageFlip Motorunu Başlat
+            pageFlip = new St.PageFlip(document.getElementById('kitap'), {
+                width: pageWidth,
+                height: pageHeight,
+                size: 'fixed',
+                minWidth: 280,
+                maxWidth: 480,
+                minHeight: 400,
+                maxHeight: 600,
+                maxShadowOpacity: 0.6,
+                showCover: true,
+                mobileScrollSupport: false,
+                usePortrait: isMobile // Mobilde tek sayfa, bilgisayarda açık çift sayfa kitap görünümü
+            });
+
+            pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+            // Sayfa çevrildiğinde kâğıt sesi çal
+            pageFlip.on('flip', () => {
+                flipAudio.currentTime = 0;
+                flipAudio.volume = 0.5;
+                flipAudio.play().catch(() => {});
+            });
+        }
+
+        // 1980'ler Caz Müzik Kontrolü
+        function toggleJazz() {
+            if (isPlaying) {
+                jazzAudio.pause();
+                vinyl.classList.remove('spinning');
+                musicBtn.innerHTML = '▶ Plağı Başlat';
+                musicBtn.classList.remove('playing');
+                musicStatus.innerText = 'Pikap Duraklatıldı';
+                isPlaying = false;
+            } else {
+                jazzAudio.volume = 0.4;
+                jazzAudio.play().then(() => {
+                    vinyl.classList.add('spinning');
+                    musicBtn.innerHTML = '❚❚ Plağı Durdur';
+                    musicBtn.classList.add('playing');
+                    musicStatus.innerText = 'Çalıyor: 80s Noir Jazz...';
+                    isPlaying = true;
+                }).catch(err => {
+                    alert("Tarayıcı ses izni için sayfaya dokunun veya jazz.mp3 dosyasının yüklü olduğundan emin olun.");
+                });
+            }
+        }
+
+        // Sayfa ilk açıldığında Polisiye kitabını yükle
+        window.addEventListener('DOMContentLoaded', () => {
+            loadBook('detective');
+        });
+    </script>
+</body>
+</html>
