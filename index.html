@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitapsal | 150 Başyapıtlık Nostaljik Kütüphane</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+</head>
+<body>
+
+    <div class="candle-glow"></div>
+
+    <header>
+        <h1 class="brand-title">KİTAPSAL</h1>
+        <p class="brand-subtitle">5 KATEGORİ • 150 GERÇEK ESER • 1980'LER CAZ EŞLİĞİNDE</p>
+
+        <div class="category-tabs">
+            <button class="tab-btn active" data-cat="psikoloji" onclick="selectCategory('psikoloji')">🧠 Psikoloji (30)</button>
+            <button class="tab-btn" data-cat="polisiye" onclick="selectCategory('polisiye')">🔍 Polisiye (30)</button>
+            <button class="tab-btn" data-cat="felsefe" onclick="selectCategory('felsefe')">🏛️ Felsefe (30)</button>
+            <button class="tab-btn" data-cat="ask" onclick="selectCategory('ask')">🥀 Aşk &amp; Dram (30)</button>
+            <button class="tab-btn" data-cat="kisisel" onclick="selectCategory('kisisel')">🧭 Kişisel Gelişim (30)</button>
+        </div>
+
+        <div class="toolbar">
+            <input type="text" id="search-box" class="search-input" placeholder="Kitap adı veya yazar ara (örn. Dostoyevski, Yalom)..." oninput="filterBooks()">
+            <div id="shelf-stats" class="shelf-stats">Psikoloji rafında 30 eser listeleniyor</div>
+        </div>
+    </header>
+
+    <main id="shelf-view" class="shelf-container">
+        <div id="books-grid" class="books-grid"></div>
+    </main>
+
+    <section id="reader-view" class="reader-view">
+        <div class="reader-top-bar">
+            <button class="back-btn" onclick="closeBook()">◀ Kütüphane Rafına Dön</button>
+            <span id="active-book-label" class="active-book-label"></span>
+        </div>
+        <div id="book-container"></div>
+    </section>
+
+    <footer class="control-bar">
+        <div class="vinyl-player">
+            <div id="vinyl" class="vinyl-disc"></div>
+            <div>
+                <div class="track-title">1984 Midnight Noir Jazz</div>
+                <div id="music-status" class="track-status">Pikap Duraklatıldı</div>
+            </div>
+            <button id="music-toggle" class="audio-btn" onclick="toggleJazz()">▶ Plağı Başlat</button>
+        </div>
+
+        <div id="book-nav" class="nav-controls">
+            <button class="nav-btn" onclick="pageFlip.flipPrev()">◀ Önceki Sayfa</button>
+            <button class="nav-btn" onclick="pageFlip.flipNext()">Sonraki Sayfa ▶</button>
+        </div>
+    </footer>
+
+    <audio id="jazz-audio" loop>
+        <source src="jazz.mp3" type="audio/mpeg">
+        <source src="muzik (2).mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="flip-audio">
+        <source src="sayfa.mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7368e4d416.mp3?filename=page-flip-47177.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="books.js"></script>
+
+    <script>
+        let currentCategory = 'psikoloji';
+        let pageFlip = null;
+        let isPlaying = false;
+
+        const jazzAudio = document.getElementById('jazz-audio');
+        const flipAudio = document.getElementById('flip-audio');
+        const vinyl = document.getElementById('vinyl');
+        const musicBtn = document.getElementById('music-toggle');
+        const musicStatus = document.getElementById('music-status');
+
+        function selectCategory(catKey) {
+            currentCategory = catKey;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.cat === catKey);
+            });
+            document.getElementById('search-box').value = '';
+            closeBook();
+            renderShelf();
+        }
+
+        function filterBooks() {
+            closeBook();
+            renderShelf();
+        }
+
+        function renderShelf() {
+            const query = document.getElementById('search-box').value.trim().toLocaleLowerCase('tr');
+            const grid = document.getElementById('books-grid');
+            const stats = document.getElementById('shelf-stats');
+            grid.innerHTML = '';
+
+            let itemsToRender = [];
+
+            if (query.length > 0) {
+                Object.keys(LIBRARY_DATA).forEach(catKey => {
+                    const cat = LIBRARY_DATA[catKey];
+                    cat.books.forEach((book, idx) => {
+                        if (
+                            book.title.toLocaleLowerCase('tr').includes(query) ||
+                            book.author.toLocaleLowerCase('tr').includes(query)
+                        ) {
+                            itemsToRender.push({ catKey, catName: cat.name, themeClass: cat.themeClass, index: idx, book });
+                        }
+                    });
+                });
+                stats.innerText = `"${query}" araması için tüm kütüphanede ${itemsToRender.length} eser bulundu`;
+            } else {
+                const cat = LIBRARY_DATA[currentCategory];
+                cat.books.forEach((book, idx) => {
+                    itemsToRender.push({ catKey: currentCategory, catName: cat.name, themeClass: cat.themeClass, index: idx, book });
+                });
+                stats.innerText = `${cat.name} rafında ${itemsToRender.length} eser listeleniyor`;
+            }
+
+            itemsToRender.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `book-card ${item.themeClass}`;
+                card.onclick = () => openBook(item.catKey, item.index);
+                card.innerHTML = `
+                    <div>
+                        <div class="card-number">
+                            <span>#${String(item.index + 1).padStart(2, '0')} • ${item.catName}</span>
+                        </div>
+                        <h3 class="card-title">${item.book.title}</h3>
+                        <div class="card-author">✍ ${item.book.author}</div>
+                    </div>
+                    <div class="card-action">Kitabı Aç &amp; Sayfaları Çevir ➔</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openBook(catKey, bookIndex) {
+            const cat = LIBRARY_DATA[catKey];
+            const book = cat.books[bookIndex];
+
+            document.getElementById('shelf-view').style.display = 'none';
+            document.getElementById('reader-view').style.display = 'flex';
+            document.getElementById('book-nav').style.display = 'flex';
+            document.getElementById('active-book-label').innerText = `${cat.name} • ${book.title}`;
+
+            const container = document.getElementById('book-container');
+            if (pageFlip) {
+                pageFlip.destroy();
+                pageFlip = null;
+            }
+
+            container.innerHTML = `
+                <div id="kitap" class="flip-book">
+                    <div class="page page-cover" data-density="hard">
+                        <div class="cover-frame">
+                            <div class="cover-genre">${cat.badge}</div>
+                            <h2 class="cover-title">${book.title}</h2>
+                            <div class="cover-divider"></div>
+                            <div class="cover-author">${book.author}</div>
+                            <div class="cover-hint">Sayfayı sola kaydırarak açın ➔</div>
+                        </div>
+                    </div>
+
+                    <div class="page">
+                        <div>
+                            <div class="page-header">
+                                <span>KİTAPSAL • ${cat.name}</span>
+                                <span>ESER İNCELEMESİ</span>
+                            </div>
+                            <h3 class="story-title">${book.title}</h3>
+                            <p class="book-meta-author"><strong>Yazar:</strong> ${book.author}</p>
+                            <div class="story-text">
+                                <p>${book.desc}</p>
+                            </div>
+                        </div>
+                        <div class="page-footer">- 1 -</div>
+                    </div>
+
+                    <div class="page">
+                        <div>
+                            <div class="page-header">
+                                <span>KİTAPSAL ARŞİVİ</span>
+                                <span>ESERİN ÖZÜ</span>
+                            </div>
+                            <h3 class="story-title">Akılda Kalan İz</h3>
+                            <div class="story-text">
+                                <div class="quote-box">“${book.quote}”</div>
+                                <p class="book-note">Bu eser, ${cat.name.toLocaleLowerCase('tr')} literatürünün temel taşlarından biri olarak okurunu kendi iç dünyasıyla ve gerçeklikle yüzleştirmeye davet eder.</p>
+                            </div>
+                        </div>
+                        <div class="page-footer">- 2 -</div>
+                    </div>
+
+                    <div class="page page-cover" data-density="hard">
+                        <div class="cover-frame">
+                            <div class="cover-genre">KİTAPSAL KÜTÜPHANESİ</div>
+                            <h2 class="cover-title cover-back-title">${book.author}</h2>
+                            <div class="cover-divider"></div>
+                            <p class="cover-back-note">Başka bir esere geçmek için üstten rafa dönebilirsiniz.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const isMobile = window.innerWidth < 768;
+            const pageWidth = isMobile ? Math.min(window.innerWidth - 40, 350) : 410;
+            const pageHeight = isMobile ? 460 : 520;
+
+            pageFlip = new St.PageFlip(document.getElementById('kitap'), {
+                width: pageWidth,
+                height: pageHeight,
+                size: 'fixed',
+                minWidth: 280,
+                maxWidth: 460,
+                minHeight: 380,
+                maxHeight: 580,
+                maxShadowOpacity: 0.6,
+                showCover: true,
+                mobileScrollSupport: false,
+                usePortrait: isMobile
+            });
+
+            pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+
+            pageFlip.on('flip', () => {
+                flipAudio.currentTime = 0;
+                flipAudio.volume = 0.5;
+                flipAudio.play().catch(() => {});
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function closeBook() {
+            if (pageFlip) {
+                pageFlip.destroy();
+                pageFlip = null;
+            }
+            document.getElementById('reader-view').style.display = 'none';
+            document.getElementById('book-nav').style.display = 'none';
+            document.getElementById('shelf-view').style.display = 'block';
+        }
+
+        function toggleJazz() {
+            if (isPlaying) {
+                jazzAudio.pause();
+                vinyl.classList.remove('spinning');
+                musicBtn.innerHTML = '▶ Plağı Başlat';
+                musicBtn.classList.remove('playing');
+                musicStatus.innerText = 'Pikap Duraklatıldı';
+                isPlaying = false;
+            } else {
+                jazzAudio.volume = 0.4;
+                jazzAudio.play().then(() => {
+                    vinyl.classList.add('spinning');
+                    musicBtn.innerHTML = '❚❚ Plağı Durdur';
+                    musicBtn.classList.add('playing');
+                    musicStatus.innerText = 'Çalıyor: 80s Noir Jazz...';
+                    isPlaying = true;
+                }).catch(() => {
+                    alert("Ses başlatılamadı; sayfaya dokunup tekrar deneyin.");
+                });
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderShelf();
+        });
+    </script>
+</body>
+</html>
